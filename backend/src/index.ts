@@ -2,12 +2,13 @@ import { env } from "./config/env";
 import { MESSAGES } from "./constants";
 import { connectDatabase, disconnectDatabase } from "./config/database";
 import app from "./server";
+import { logger } from "./utils/logger";
 
 async function main(): Promise<void> {
   await connectDatabase();
 
   const server = app.listen(env.port, () => {
-    console.log(`Server running on http://localhost:${env.port} (${env.nodeEnv})`);
+    logger.info(`Server running on http://localhost:${env.port} (${env.nodeEnv})`);
   });
 
   const shutdown = async () => {
@@ -20,7 +21,7 @@ async function main(): Promise<void> {
 }
 
 main().catch(async (err) => {
-  console.error(MESSAGES.SERVER_START_FAILED, err);
+  logger.fatal({ err }, MESSAGES.SERVER_START_FAILED);
   await disconnectDatabase();
   process.exit(1);
 });

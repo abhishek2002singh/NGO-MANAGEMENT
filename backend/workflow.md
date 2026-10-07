@@ -105,7 +105,7 @@ Request
   → authorize("perm")     roles' permissions + extraPermissions − deniedPermissions
   → checkPlanLimit("x")   e.g. Free plan allows 50 donors
   → applyDataScope        field staff see only their projects/branch
-  → validate(zodSchema)
+  → zodSchema.parse(req.body) inside controller (ZodError → 400 via errorHandler)
   → controller → service → prisma (auto-filtered by organizationId)
   → auditLog
 ```
@@ -132,16 +132,17 @@ Request
 | Response helpers | ✅ Done (`src/utils/apiResponse.ts`) |
 | Health module | ✅ Done (`src/modules/checkHealthAndBackendCondition`) |
 | `User` model | ⚠️ Placeholder only (`Int` id, name, email). Needs to be replaced. |
+| AppError, ZodError handling, helmet, pino logger, request id, CORS x-org-id, JWT env | ✅ Done (Step 1) |
 | Auth, tenants, roles, billing | ❌ Not started |
 
 ---
 
 ## 3. Next steps (in order)
 
-### Step 1: Foundation clean-up
+### Step 1: Foundation clean-up ✅ DONE
 1. Add an `AppError` class (`statusCode`, `message`, `code`) in `src/utils/`. Update `errorHandler` to return its status and message, handle `ZodError` → 400 and Prisma `P2002` (duplicate value) → 409, and hide stack traces in production.
 2. Add `CONFLICT: 409` and `UNPROCESSABLE: 422` to `HTTP_STATUS`.
-3. Add a `validate(schema)` middleware that uses Zod for body, params and query.
+3. Validate input with Zod inside controllers (`schema.parse(req.body)`); errorHandler turns ZodError into 400. (validate middleware was removed by choice.)
 4. Add an `asyncHandler` helper, or rely on Express 5's built-in promise handling and keep controllers `async`.
 5. Add `helmet`, plus `express.json({ limit: "1mb" })`.
 6. Add a request ID and a structured logger (`pino`). Log `requestId`, `userId` and `orgId` on every line.

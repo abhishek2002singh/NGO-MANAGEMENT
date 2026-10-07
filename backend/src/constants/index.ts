@@ -27,7 +27,8 @@ export const ROUTES = {
 
 export const CORS_CONFIG = {
   METHODS: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  ALLOWED_HEADERS: ["Content-Type", "Authorization"],
+  ALLOWED_HEADERS: ["Content-Type", "Authorization", "x-org-id", "x-request-id"],
+  EXPOSED_HEADERS: ["x-request-id"],
 } as const;
 
 export const HTTP_STATUS = {
@@ -37,6 +38,9 @@ export const HTTP_STATUS = {
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
   NOT_FOUND: 404,
+  CONFLICT: 409,
+  PAYLOAD_TOO_LARGE: 413,
+  UNPROCESSABLE_ENTITY: 422,
   TOO_MANY_REQUESTS: 429,
   INTERNAL_SERVER_ERROR: 500,
 } as const;
@@ -49,8 +53,17 @@ export const MESSAGES = {
   ROUTE_NOT_FOUND: "Route not found",
   INTERNAL_SERVER_ERROR: "Internal server error",
   TOO_MANY_REQUESTS: "Too many requests, please try again later",
-  SERVER_START_FAILED: "Failed to start server:",
+  SERVER_START_FAILED: "Failed to start server",
+  VALIDATION_FAILED: "Validation failed",
+  DUPLICATE_RECORD: "Record already exists",
+  RECORD_NOT_FOUND: "Record not found",
+  INVALID_JSON: "Invalid JSON in request body",
 } as const;
+
+export const REQUEST_ID_HEADER = "x-request-id";
+export const ORG_ID_HEADER = "x-org-id";
+
+export const JSON_BODY_LIMIT = "1mb";
 
 export const RATE_LIMIT = {
   WINDOW_MS: 15 * 60 * 1000,

@@ -1,15 +1,22 @@
 import express from "express";
 import { corsMiddleware } from "./middleware/cors";
+import { securityHeaders } from "./middleware/security";
+import { requestLogger } from "./middleware/requestLogger";
 import { limiter } from "./middleware/rateLimit";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 import { getHome } from "./modules/checkHealthAndBackendCondition/home.controller";
 import apiRoutes from "./routes";
-import { API_PREFIX, ROUTES } from "./constants";
+import { API_PREFIX, JSON_BODY_LIMIT, ROUTES } from "./constants";
 
 const app = express();
 
+app.disable("x-powered-by");
+
+app.use(requestLogger);
+app.use(securityHeaders);
 app.use(corsMiddleware);
-app.use(express.json());
+app.use(express.json({ limit: JSON_BODY_LIMIT }));
+app.use(express.urlencoded({ extended: true, limit: JSON_BODY_LIMIT }));
 app.use(limiter);
 
 app.get(ROUTES.HOME, getHome);

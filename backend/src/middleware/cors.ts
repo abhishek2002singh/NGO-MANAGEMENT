@@ -7,4 +7,5 @@ export const corsMiddleware = cors({
   credentials: true,
   methods: [...CORS_CONFIG.METHODS],
   allowedHeaders: [...CORS_CONFIG.ALLOWED_HEADERS],
+  exposedHeaders: [...CORS_CONFIG.EXPOSED_HEADERS],
 });

@@ -1,0 +1,10 @@
+// Prisma schema - every .prisma file in this folder is merged into one schema.
+// One file per domain, named after its module in src/modules.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}

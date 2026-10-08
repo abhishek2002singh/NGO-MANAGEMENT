@@ -23,6 +23,7 @@ export const TIME_ZONE = "Asia/Kolkata";
 export const ROUTES = {
   HOME: "/",
   HEALTH: "/health",
+  AUTH: "/auth",
 } as const;
 
 export const CORS_CONFIG = {
@@ -68,5 +69,37 @@ export const JSON_BODY_LIMIT = "1mb";
 export const RATE_LIMIT = {
   WINDOW_MS: 15 * 60 * 1000,
   MAX_REQUESTS: 100,
+  AUTH_MAX_REQUESTS: 20,
   IPV6_SUBNET: 56,
+} as const;
+
+export const AUTH = {
+  REFRESH_COOKIE: "refresh_token",
+  REFRESH_COOKIE_PATH: "/api/auth",
+  MAX_FAILED_LOGINS: 5,
+  LOCK_MINUTES: 15,
+  EMAIL_VERIFY_TTL_HOURS: 24,
+  PASSWORD_RESET_TTL_MINUTES: 30,
+} as const;
+
+export const AUTH_MESSAGES = {
+  REGISTERED: "NGO registered successfully",
+  LOGGED_IN: "Logged in",
+  LOGGED_OUT: "Logged out",
+  LOGGED_OUT_ALL: "Logged out from all devices",
+  TOKEN_REFRESHED: "Token refreshed",
+  PROFILE: "Current user",
+  INVALID_CREDENTIALS: "Invalid email or password",
+  ACCOUNT_LOCKED: "Account locked due to too many failed attempts. Try again later",
+  ACCOUNT_DISABLED: "Account is disabled",
+  EMAIL_TAKEN: "Email is already registered",
+  TOKEN_MISSING: "Authentication required",
+  TOKEN_INVALID: "Invalid or expired token",
+  SESSION_INVALID: "Session expired, please log in again",
+  RESET_LINK_SENT: "If that email exists, a reset link has been sent",
+  PASSWORD_RESET: "Password has been reset, please log in",
+  VERIFY_LINK_SENT: "Verification email sent",
+  EMAIL_VERIFIED: "Email verified",
+  ALREADY_VERIFIED: "Email is already verified",
+  LINK_INVALID: "Link is invalid or has expired",
 } as const;

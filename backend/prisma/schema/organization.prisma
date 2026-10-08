@@ -1,0 +1,188 @@
+// tenancy models
+
+enum OrgType {
+  PLATFORM
+  NGO
+}
+
+enum OrgStatus {
+  PENDING
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+  REJECTED
+}
+
+enum EntityType {
+  TRUST
+  SOCIETY
+  SECTION8
+  RELIGIOUS_TRUST
+  OTHER
+}
+
+enum MemberStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+}
+
+enum RoleScope {
+  PLATFORM
+  TENANT
+  PORTAL
+}
+
+model Organization {
+  id                String      @id @default(uuid())
+  type              OrgType     @default(NGO)
+  name              String
+  slug              String      @unique
+  entityType        EntityType?
+  email             String?
+  phone             String?
+  logoUrl           String?
+  website           String?
+  addressLine       String?
+  city              String?
+  state             String?
+  pincode           String?
+  country           String      @default("IN")
+  pan               String?
+  registrationNo    String?
+  reg12A            String?
+  reg80G            String?
+  fcraNo            String?
+  csr1No            String?
+  darpanId          String?
+  status            OrgStatus   @default(TRIAL)
+  verifiedAt        DateTime?
+  settings          Json        @default("{}")
+  parentOrgId       String?
+  accountManagerId  String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  deletedAt         DateTime?
+
+  parentOrg     Organization?        @relation("OrgHierarchy", fields: [parentOrgId], references: [id])
+  childOrgs     Organization[]       @relation("OrgHierarchy")
+  members       OrganizationMember[]
+  roles         Role[]
+  departments   Department[]
+  branches      Branch[]
+  invitations   Invitation[]
+  subscriptions Subscription[]
+  invoices      Invoice[]
+  auditLogs     AuditLog[]
+
+  @@index([type, status])
+}
+
+model OrganizationMember {
+  id                String       @id @default(uuid())
+  userId            String
+  organizationId    String
+  departmentId      String?
+  branchId          String?
+  status            MemberStatus @default(ACTIVE)
+  projectAccess     String[]     @default([])
+  extraPermissions  String[]     @default([])
+  deniedPermissions String[]     @default([])
+  invitedById       String?
+  joinedAt          DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  deletedAt         DateTime?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  department   Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  branch       Branch?       @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  roles        MemberRole[]
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+model Role {
+  id             String    @id @default(uuid())
+  // null = system template shared by every org of this scope
+  organizationId String?
+  key            String
+  name           String
+  description    String?
+  scope          RoleScope
+  permissions    String[]  @default([])
+  isSystem       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      MemberRole[]
+
+  // NULLs are distinct in a unique index, so system role keys are checked in the seed / service
+  @@unique([organizationId, key])
+  @@index([scope])
+}
+
+model MemberRole {
+  memberId String
+  roleId   String
+
+  member OrganizationMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  role   Role               @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([memberId, roleId])
+  @@index([roleId])
+}
+
+model Department {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  headMemberId   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      OrganizationMember[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Branch {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  addressLine    String?
+  city           String?
+  state          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      OrganizationMember[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Invitation {
+  id             String    @id @default(uuid())
+  organizationId String
+  email          String
+  roleIds        String[]
+  tokenHash      String    @unique
+  invitedById    String
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+}

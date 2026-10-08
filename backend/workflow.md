@@ -131,9 +131,11 @@ Request
 | Prisma + Postgres connection | ✅ Done (`src/config/database.ts`) |
 | Response helpers | ✅ Done (`src/utils/apiResponse.ts`) |
 | Health module | ✅ Done (`src/modules/checkHealthAndBackendCondition`) |
-| `User` model | ⚠️ Placeholder only (`Int` id, name, email). Needs to be replaced. |
+| Prisma schema: identity, tenancy, billing, audit | ✅ Done (`prisma/schema/`), migration pending |
+| Permissions, system roles, plans, seed | ✅ Done (`src/constants/*`, `prisma/seed.ts`) |
+| Auth module + `authenticate` middleware | ✅ Done (`src/modules/auth`) |
 | AppError, ZodError handling, helmet, pino logger, request id, CORS x-org-id, JWT env | ✅ Done (Step 1) |
-| Auth, tenants, roles, billing | ❌ Not started |
+| Tenant/authorize middleware, org & member APIs, billing | ❌ Not started |
 
 ---
 
@@ -148,16 +150,16 @@ Request
 6. Add a request ID and a structured logger (`pino`). Log `requestId`, `userId` and `orgId` on every line.
 7. Add `"x-org-id"` to `CORS_CONFIG.ALLOWED_HEADERS`.
 8. Add env vars to `env.ts`: `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_TTL`, `JWT_REFRESH_TTL`, `ENCRYPTION_KEY`, `APP_URL`.
-9. Settle the module layout: `modules/<name>/{routes, controller, service, schema(zod), types}.ts`.
+9. Settle the module layout: `modules/<name>/{routes, controller, service, validation(zod), types}.ts`.
 
-### Step 2: Prisma schema (identity + tenancy)
+### Step 2: Prisma schema (identity + tenancy) ✅ DONE
 1. Replace the placeholder `User` with the full model from §1.3, using `String @id @default(uuid())`.
 2. Add `Organization`, `OrganizationMember`, `Role`, `MemberRole` (join table), `Department`, `Branch`, `Invitation`, `Session`, `AuditLog`.
 3. Add enums: `OrgType`, `OrgStatus`, `UserStatus`, `MemberStatus`, `RoleScope`, `EntityType`.
 4. Add indexes: `@@unique([userId, organizationId])` on member, `@@unique([organizationId, key])` on role, and `@@index([organizationId])` on every tenant table.
 5. Because the `init` migration only contains the placeholder User and has no real data, **reset and create a fresh migration** (`prisma migrate reset`, then `prisma migrate dev --name identity_tenancy`).
 
-### Step 3: Permissions as code
+### Step 3: Permissions as code ✅ DONE
 1. Create `src/constants/permissions.ts` with all permission strings grouped by module (`PERMISSIONS.DONOR.READ`, and so on).
 2. Create `src/constants/roles.ts` with the default roles from §1.2 and their permission lists.
 3. Create a seed script at `prisma/seed.ts`. It should be safe to run more than once (upsert). It creates:
@@ -167,7 +169,7 @@ Request
    - default plans (Free, Growth, Scale, Enterprise)
 4. Add the `"prisma:seed"` script to `package.json`.
 
-### Step 4: Auth module (`modules/auth`)
+### Step 4: Auth module (`modules/auth`) ✅ DONE (phone OTP + 2FA later)
 1. Packages: `argon2` (or `bcrypt`), `jsonwebtoken`, `cookie-parser`.
 2. Endpoints:
    - `POST /auth/register-ngo`: creates User + NGO Organization + OrganizationMember(ngo_owner) + trial Subscription in **one transaction**

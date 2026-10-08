@@ -1,0 +1,89 @@
+// billing models
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  EXPIRED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Plan {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  name         String
+  description  String?
+  // amounts in paise
+  priceMonthly Int      @default(0)
+  priceYearly  Int      @default(0)
+  trialDays    Int      @default(14)
+  features     String[] @default([])
+  limits       Json     @default("{}")
+  isActive     Boolean  @default(true)
+  isPublic     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id                     String             @id @default(uuid())
+  organizationId         String
+  planId                 String
+  status                 SubscriptionStatus @default(TRIALING)
+  interval               BillingInterval    @default(MONTHLY)
+  trialEndsAt            DateTime?
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  autoRenew              Boolean            @default(true)
+  cancelledAt            DateTime?
+  gatewaySubscriptionId  String?            @unique
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan         @relation(fields: [planId], references: [id])
+  invoices     Invoice[]
+
+  @@index([organizationId])
+  @@index([status, currentPeriodEnd])
+}
+
+model Invoice {
+  id               String        @id @default(uuid())
+  organizationId   String
+  subscriptionId   String?
+  number           String        @unique
+  // amounts in paise
+  amount           Int
+  gst              Int           @default(0)
+  total            Int
+  status           InvoiceStatus @default(PENDING)
+  dueDate          DateTime?
+  paidAt           DateTime?
+  gatewayOrderId   String?
+  gatewayPaymentId String?       @unique
+  pdfUrl           String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+}

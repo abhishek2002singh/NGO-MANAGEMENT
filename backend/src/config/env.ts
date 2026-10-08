@@ -20,6 +20,8 @@ export const env = {
   port: Number(process.env["PORT"] ?? DEFAULT_PORT),
   databaseUrl: required("DATABASE_URL"),
   frontendUrl: process.env["FRONTEND_URL"],
+  // base url used in emailed links (verify email, reset password, invites)
+  appUrl: process.env["APP_URL"] ?? process.env["FRONTEND_URL"] ?? "http://localhost:5173",
   jwt: {
     accessSecret: required("JWT_ACCESS_SECRET"),
     refreshSecret: required("JWT_REFRESH_SECRET"),
